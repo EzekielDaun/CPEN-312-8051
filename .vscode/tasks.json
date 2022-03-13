@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "options": {
+    "env": {
+      // Modify these paths to match the install locations for CrossIDE and Quartus on your system
+      // Don't include trailing slashes
+      "CROSSIDE_PATH": "C:\\CrossIDE",
+      "QUARTUS_PATH": "C:\\intelFPGA_lite\\21.1\\quartus"
+    }
+  },
+
+  // NO NEED TO EDIT ANYTHING BELOW HERE
+  "tasks": [
+    {
+      "label": "Assemble (A51)",
+      "type": "shell",
+      "command": "& \\\"$env:CROSSIDE_PATH\\Call51\\Bin\\a51.exe\\\" \\\"${file}\\\"",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Flash (Quartus SignalTap II)",
+      "type": "shell",
+      "command": "& \\\"$env:QUARTUS_PATH\\bin64\\quartus_stp.exe\\\" -t $env:CROSSIDE_PATH\\Load_Script.tcl \\\"${fileDirname}\\${fileBasenameNoExtension}.hex\\\"",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Debug (CMON51)",
+      "type": "shell",
+      "command": "& \\\"$env:QUARTUS_PATH\\bin64\\quartus_stp.exe\\\" -t \\\"$env:CROSSIDE_PATH\\cmon51.tcl\\\"",
+      "problemMatcher": []
+    }
+  ]
+}
