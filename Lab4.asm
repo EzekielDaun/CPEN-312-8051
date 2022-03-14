@@ -24,7 +24,7 @@ LUT_SEVEN_SEG:
     DB 00000000b, 00010000b, 00001000b, 00000011b ; 8..b
     DB 00100111b, 00100001b, 00000110b, 00001110b ; c..f
     DB 01111111b                                  ; off
-    DB 0,0                                        ; TODO: p,n
+    DB 00001100b, 01001000b                                       ; TODO: p,n
 
 SEVEN_SEG_DISP MAC ; SEVEN_SEG_DISP(HEXx, #val) set val according to LUT_SEVEN_SEG
     mov DPTR, #LUT_SEVEN_SEG
