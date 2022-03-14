@@ -11,6 +11,7 @@ STATE: DS 1
 TIM0DIV0: DS 1
 TIM0DIV1: DS 1
 TASK101STATE: DS 1
+TASK110STATE: DS 1
 
 BSEG
 TIM0FLAG: DBIT 1
@@ -24,7 +25,7 @@ LUT_SEVEN_SEG:
     DB 00000000b, 00010000b, 00001000b, 00000011b ; 8..b
     DB 00100111b, 00100001b, 00000110b, 00001110b ; c..f
     DB 01111111b                                  ; off
-    DB 00001100b, 01001000b                                       ; TODO: p,n
+    DB 00001100b, 01001000b, 00001001b, 01000111b ; p, n, H, L
 
 SEVEN_SEG_DISP MAC ; SEVEN_SEG_DISP(HEXx, #val) set val according to LUT_SEVEN_SEG
     mov DPTR, #LUT_SEVEN_SEG
@@ -70,6 +71,7 @@ state_switch:
     clr TASK100FLAG
     ; reset state bytes
     mov TASK101STATE, #0
+    mov TASK110STATE, #0
     ; reset timer count
     setb TIM0FLAG
     mov TL0, #0
@@ -111,6 +113,8 @@ main_logic:
     dec A
     jz task_101_hook
     dec A
+    jz task_110_hook
+    dec A
 
     ljmp main_loop
 
@@ -126,6 +130,8 @@ task_100_hook:
     ljmp task_100
 task_101_hook:
     ljmp task_101
+task_110_hook:
+    ljmp task_110
 
 ; Display 6 MSD of the student number
 task_000:
@@ -262,6 +268,49 @@ task_101_end:
     inc TASK101STATE
 task_101_to_main:
     ljmp main_loop
+
+task_110_end:
+    inc TASK110STATE
+task_110_to_main:
+    ljmp main_loop
+task_110:
+    jnb TIM0FLAG, task_110_to_main
+    clr TIM0FLAG
+    mov A, TASK110STATE
+    cjne A, #0, task_110_1
+task_110_0:
+    ; Display "HELLO "
+    SEVEN_SEG_DISP(#19,5)
+    SEVEN_SEG_DISP(#14,4)
+    SEVEN_SEG_DISP(#20,3)
+    SEVEN_SEG_DISP(#20,2)
+    SEVEN_SEG_DISP(#0,1)
+    SEVEN_SEG_DISP(#16,0)
+    ljmp task_110_end
+task_110_1:
+    cjne A, #1, task_110_2
+    ; Display 6 MSD of the Student Number
+    SEVEN_SEG_DISP(#4,5)
+    SEVEN_SEG_DISP(#2,4)
+    SEVEN_SEG_DISP(#4,3)
+    SEVEN_SEG_DISP(#4,2)
+    SEVEN_SEG_DISP(#8,1)
+    SEVEN_SEG_DISP(#6,0)
+    ljmp task_110_end
+task_110_2:
+    cjne A, #2, task_110_3
+    ; Display "CPN312"
+    SEVEN_SEG_DISP(#12,5)
+    SEVEN_SEG_DISP(#17,4)
+    SEVEN_SEG_DISP(#18,3)
+    SEVEN_SEG_DISP(#3,2)
+    SEVEN_SEG_DISP(#1,1)
+    SEVEN_SEG_DISP(#2,0)
+    ljmp task_110_end
+task_110_3:
+    mov TASK110STATE, #0
+    ljmp task_110_0
+
 
 task_reserved:
     ;jnb TIM0FLAG, main_loop
