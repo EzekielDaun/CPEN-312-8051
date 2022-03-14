@@ -14,6 +14,7 @@ TIM0DIV1: DS 1
 BSEG
 TIM0FLAG: DBIT 1
 TASK01xFLAG: DBIT 1 ; default 1, means restart
+TASK100FLAG: DBIT 1
 
 CSEG
 LUT_SEVEN_SEG:
@@ -22,7 +23,7 @@ LUT_SEVEN_SEG:
     DB 00000000b, 00010000b, 00001000b, 00000011b ; 8..b
     DB 00100111b, 00100001b, 00000110b, 00001110b ; c..f
     DB 01111111b                                  ; off
-    DB 0,0 ; p,n
+    DB 0,0                                        ; TODO: p,n
 
 SEVEN_SEG_DISP MAC ; SEVEN_SEG_DISP(HEXx, #val) set val according to LUT_SEVEN_SEG
     mov DPTR, #LUT_SEVEN_SEG
@@ -65,8 +66,9 @@ state_switch:
     mov STATE, A
     ; reset flag bits
     setb TASK01xFLAG
+    clr TASK100FLAG
     ; reset timer count
-    clr TIM0FLAG
+    setb TIM0FLAG
     mov TL0, #0
     mov TIM0DIV0, #0
     mov TIM0DIV1, #0
@@ -102,6 +104,8 @@ main_logic:
     dec A
     jz task_011_hook
     dec A
+    jz task_100_hook
+    dec A
 
     ljmp main_loop
 
@@ -113,6 +117,8 @@ task_010_hook:
     ljmp task_010
 task_011_hook:
     ljmp task_011
+task_100_hook:
+    ljmp task_100
 
 ; Display 6 MSD of the student number
 task_000:
@@ -154,18 +160,6 @@ task_010:
 task_010_end:
     ljmp main_loop
 
-; task_010_restart:
-;     SEVEN_SEG_DISP(#4,5)
-;     SEVEN_SEG_DISP(#2,4)
-;     SEVEN_SEG_DISP(#4,3)
-;     SEVEN_SEG_DISP(#4,2)
-;     SEVEN_SEG_DISP(#8,1)
-;     SEVEN_SEG_DISP(#6,0)
-;     mov R7, #01111001b ; HEX code for 1
-;     mov R6, #00110000b ; HEX code for 3
-;     clr TIM0FLAG
-;     ljmp main_loop
-
 task_011:
     jbc TASK01xFLAG, task_01x_restart_hook
     jnb TIM0FLAG, task_011_end
@@ -182,18 +176,6 @@ task_011:
 task_011_end:
     ljmp main_loop
 
-; task_011_restart:
-;     SEVEN_SEG_DISP(#4,5)
-;     SEVEN_SEG_DISP(#2,4)
-;     SEVEN_SEG_DISP(#4,3)
-;     SEVEN_SEG_DISP(#4,2)
-;     SEVEN_SEG_DISP(#8,1)
-;     SEVEN_SEG_DISP(#6,0)
-;     mov R7, #01111001b ; HEX code for 1
-;     mov R6, #00110000b ; HEX code for 3
-;     clr TIM0FLAG
-;     ljmp main_loop
-
 task_01x_restart:
     SEVEN_SEG_DISP(#4,5)
     SEVEN_SEG_DISP(#2,4)
@@ -205,6 +187,29 @@ task_01x_restart:
     mov R6, #00110000b ; HEX code for 3
     clr TIM0FLAG
     ljmp main_loop
+
+task_100:
+    jnb TIM0FLAG, task_100_end
+    clr TIM0FLAG
+    cpl TASK100FLAG
+    jb TASK100FLAG, task_100_on
+    mov HEX0, #0xFF
+    mov HEX1, #0xFF
+    mov HEX2, #0xFF
+    mov HEX3, #0xFF
+    mov HEX4, #0xFF
+    mov HEX5, #0xFF
+    ljmp main_loop
+task_100_on:
+    SEVEN_SEG_DISP(#4,5)
+    SEVEN_SEG_DISP(#4,4)
+    SEVEN_SEG_DISP(#8,3)
+    SEVEN_SEG_DISP(#6,2)
+    SEVEN_SEG_DISP(#1,1)
+    SEVEN_SEG_DISP(#3,0)
+task_100_end:
+    ljmp main_loop
+
 task_reserved:
     ;jnb TIM0FLAG, main_loop
     ;clr TIM0FLAG
