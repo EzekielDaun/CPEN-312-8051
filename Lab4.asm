@@ -10,6 +10,7 @@ DSEG at 0x30
 STATE: DS 1
 TIM0DIV0: DS 1
 TIM0DIV1: DS 1
+TASK101STATE: DS 1
 
 BSEG
 TIM0FLAG: DBIT 1
@@ -67,6 +68,8 @@ state_switch:
     ; reset flag bits
     setb TASK01xFLAG
     clr TASK100FLAG
+    ; reset state bytes
+    mov TASK101STATE, #0
     ; reset timer count
     setb TIM0FLAG
     mov TL0, #0
@@ -106,6 +109,8 @@ main_logic:
     dec A
     jz task_100_hook
     dec A
+    jz task_101_hook
+    dec A
 
     ljmp main_loop
 
@@ -119,6 +124,8 @@ task_011_hook:
     ljmp task_011
 task_100_hook:
     ljmp task_100
+task_101_hook:
+    ljmp task_101
 
 ; Display 6 MSD of the student number
 task_000:
@@ -208,6 +215,52 @@ task_100_on:
     SEVEN_SEG_DISP(#1,1)
     SEVEN_SEG_DISP(#3,0)
 task_100_end:
+    ljmp main_loop
+
+task_101:
+    jnb TIM0FLAG, task_101_to_main
+    clr TIM0FLAG
+
+    mov A, TASK101STATE
+    cjne A, #0, task_101_1
+task_101_0:
+    mov HEX0, #0xFF
+    mov HEX1, #0xFF
+    mov HEX2, #0xFF
+    mov HEX3, #0xFF
+    mov HEX4, #0xFF
+    mov HEX5, #0xFF
+    ljmp task_101_end
+task_101_1:
+    cjne A, #1, task_101_2
+    SEVEN_SEG_DISP(#4,5)
+    ljmp task_101_end
+task_101_2:
+    cjne A, #2, task_101_3
+    SEVEN_SEG_DISP(#2,4)
+    ljmp task_101_end
+task_101_3:
+    cjne A, #3, task_101_4
+    SEVEN_SEG_DISP(#4,3)
+    ljmp task_101_end
+task_101_4:
+    cjne A, #4, task_101_5
+    SEVEN_SEG_DISP(#4,2)
+    ljmp task_101_end
+task_101_5:
+    cjne A, #5, task_101_6
+    SEVEN_SEG_DISP(#8,1)
+    ljmp task_101_end
+task_101_6:
+    cjne A, #6, task_101_7
+    SEVEN_SEG_DISP(#6,0)
+    ljmp task_101_end
+task_101_7:
+    mov TASK101STATE, #0 ; only 7 states
+    ljmp task_101_0
+task_101_end:
+    inc TASK101STATE
+task_101_to_main:
     ljmp main_loop
 
 task_reserved:
