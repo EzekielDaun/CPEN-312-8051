@@ -115,6 +115,7 @@ main_logic:
     dec A
     jz task_110_hook
     dec A
+    jz task_111_hook
 
     ljmp main_loop
 
@@ -132,6 +133,8 @@ task_101_hook:
     ljmp task_101
 task_110_hook:
     ljmp task_110
+task_111_hook:
+    ljmp task_111
 
 ; Display 6 MSD of the student number
 task_000:
@@ -311,6 +314,7 @@ task_110_3:
     mov TASK110STATE, #0
     ljmp task_110_0
 
+task_111:
 
 task_reserved:
     ;jnb TIM0FLAG, main_loop
