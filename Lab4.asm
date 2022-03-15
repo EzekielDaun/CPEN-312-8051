@@ -17,6 +17,8 @@ BSEG
 TIM0FLAG: DBIT 1
 TASK01xFLAG: DBIT 1 ; default 1, means restart
 TASK100FLAG: DBIT 1
+TASK111RESETFLAG: DBIT 1
+TASK111STATEFLAG: DBIT 1
 
 CSEG
 LUT_SEVEN_SEG:
@@ -69,6 +71,8 @@ state_switch:
     ; reset flag bits
     setb TASK01xFLAG
     clr TASK100FLAG
+    setb TASK111RESETFLAG
+    clr TASK111STATEFLAG
     ; reset state bytes
     mov TASK101STATE, #0
     mov TASK110STATE, #0
@@ -204,11 +208,13 @@ task_01x_restart:
     clr TIM0FLAG
     ljmp main_loop
 
+; Blink 6 LSD of the student number
 task_100:
     jnb TIM0FLAG, task_100_end
     clr TIM0FLAG
     cpl TASK100FLAG
     jb TASK100FLAG, task_100_on
+task_100_off:
     mov HEX0, #0xFF
     mov HEX1, #0xFF
     mov HEX2, #0xFF
@@ -226,6 +232,7 @@ task_100_on:
 task_100_end:
     ljmp main_loop
 
+; Gradually display 6 MSD of the student number
 task_101:
     jnb TIM0FLAG, task_101_to_main
     clr TIM0FLAG
@@ -276,6 +283,7 @@ task_110_end:
     inc TASK110STATE
 task_110_to_main:
     ljmp main_loop
+; Display HELLO -> CPN312 -> 6 MSD of the student number
 task_110:
     jnb TIM0FLAG, task_110_to_main
     clr TIM0FLAG
@@ -314,7 +322,40 @@ task_110_3:
     mov TASK110STATE, #0
     ljmp task_110_0
 
+task_111_to_main:
+    ljmp main_loop
 task_111:
+    jnb TASK111RESETFLAG, task_111_main_logic
+    clr TASK111RESETFLAG
+    SEVEN_SEG_DISP(#4,5)
+    SEVEN_SEG_DISP(#4,4)
+    SEVEN_SEG_DISP(#8,3)
+    SEVEN_SEG_DISP(#6,2)
+    SEVEN_SEG_DISP(#1,1)
+    SEVEN_SEG_DISP(#3,0)
+    ljmp main_loop
+task_111_main_logic:
+    jnb TIM0FLAG, task_111_to_main
+    clr TIM0FLAG
+
+    jb TASK111STATEFLAG, task_111_low_freq
+    SEVEN_SEG_DISP(#4,5)
+    SEVEN_SEG_DISP(#2,4)
+    SEVEN_SEG_DISP(#4,3)
+    SEVEN_SEG_DISP(#4,2)
+    SEVEN_SEG_DISP(#8,1)
+    SEVEN_SEG_DISP(#6,0)
+    cpl TASK111STATEFLAG
+    ljmp main_loop
+task_111_low_freq:
+    SEVEN_SEG_DISP(#4,5)
+    SEVEN_SEG_DISP(#4,4)
+    SEVEN_SEG_DISP(#8,3)
+    SEVEN_SEG_DISP(#6,2)
+    SEVEN_SEG_DISP(#1,1)
+    SEVEN_SEG_DISP(#3,0)
+    cpl TASK111STATEFLAG
+    ljmp main_loop
 
 task_reserved:
     ;jnb TIM0FLAG, main_loop
