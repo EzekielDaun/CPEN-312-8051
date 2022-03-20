@@ -101,10 +101,19 @@ set_2hz:
     ljmp main_logic
 
 main_logic:
-    mov A, SWA
-    anl A, #0111b
-    cjne A, STATE, state_switch
+    ; Version 1: Response SWx in realtime
+    ; mov A, SWA
+    ; anl A, #0111b
+    ; cjne A, STATE, state_switch
 
+    ; Version 2: Latch SWx by KEY3
+    mov A, STATE
+    jb KEY.3, skip_switching
+    ljmp state_switch
+
+    ;---------------------------
+
+skip_switching:
     jz task_000_hook
     dec A
     jz task_001_hook
