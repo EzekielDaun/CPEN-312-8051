@@ -19,6 +19,9 @@
         "kind": "build",
         "isDefault": true
       },
+      "options": {
+        "cwd": "${fileDirname}"
+      },
       "problemMatcher": []
     },
     {
@@ -35,6 +38,18 @@
       "label": "Debug (CMON51)",
       "type": "shell",
       "command": "& \\\"$env:QUARTUS_PATH\\bin64\\quartus_stp.exe\\\" -t \\\"$env:CROSSIDE_PATH\\cmon51.tcl\\\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "Assemble and Flash",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Assemble (A51)", "Flash (Quartus SignalTap II)"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Assemble and Flash",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Assemble (A51)", "Flash (Quartus SignalTap II)"],
       "problemMatcher": []
     }
   ]
