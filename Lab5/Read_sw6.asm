@@ -1,10 +1,10 @@
-$modde0cv
+; $modde0cv
 
-	CSEG at 0
-	ljmp mycode
+; 	CSEG at 0
+; 	ljmp mycode
 
-	DSEG at 30H
-bcd:	ds 5
+; 	DSEG at 30H
+; bcd:	ds 5
 
 	CSEG
 
