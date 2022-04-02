@@ -89,7 +89,19 @@ no_multiplication:
 	lcall Display           ; Display the new BCD number
 	ljmp main_loop          ; Go check for more input
 no_division:
+	cjne a, #4, no_remainder
+	; remainder
+	lcall remainder32
+	lcall hex2bcd           ; Convert result in x to BCD
+	lcall Display           ; Display the new BCD number
+	ljmp main_loop          ; Go check for more input
 no_remainder:
+	cjne a, #5, no_sqrt
+	; sqrt
+	lcall sqrt32
+	lcall hex2bcd           ; Convert result in x to BCD
+	lcall Display           ; Display the new BCD number
+	ljmp main_loop          ; Go check for more input
 no_sqrt:
 		; Other operations maybe coded here
 no_equal:
@@ -126,8 +138,81 @@ remainder32:
 	push acc
 	push psw
 
+	; save number x to [R5..R7]
+	mov R4,x+0
+	mov R5,x+1
+	mov R6,x+2
+	mov R7,x+3
+
+	lcall div32
+	lcall mul32
+
+	clr c
+	mov a, R4
+	subb a, x+0
+	mov x+0, a
+	mov a, R5
+	subb a, x+1
+	mov x+1, a
+	mov a, R6
+	subb a, x+2
+	mov x+2, a
+	mov a, R7
+	subb a, x+3
+	mov x+3, a
 
 
+	pop psw
+	pop acc
+	ret
+
+sqrt32:
+	;https://en.wikipedia.org/wiki/Integer_square_root#..._using_subtraction
+	push acc
+	push psw
+	push y+3
+	push y+2
+	push y+1
+	push y+0
+
+	clr a
+	mov y+3, a
+	mov y+2, a
+	mov y+1, a
+	mov y+0, #5
+
+	lcall mul32 ; a = 5 * y
+sqrt32_loop:
+	lcall x_gteq_y
+	jnb mf, sqrt32_end
+	lcall sub32
+	clr c
+	mov a, y+0
+	addc a, #10
+	mov y+0, a
+	mov a, y+1
+	addc a, #0
+	mov y+1, a
+	mov a, y+2
+	addc a, #0
+	mov y+2, a
+	mov a, y+3
+	addc a, #0
+	mov y+3, a
+	sjmp sqrt32_loop
+
+sqrt32_end:
+	lcall xchg_xy
+	mov y+3, #0
+	mov y+2, #0
+	mov y+1, #0
+	mov y+0, #10
+	lcall div32
+
+	pop y+0
+	pop y+1
+	pop y+2
+	pop y+3
 	pop psw
 	pop acc
 	ret
