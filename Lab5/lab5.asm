@@ -25,7 +25,7 @@ $include(Read_sw6.asm)
 
 CSEG
 init:
-    mov SP, #0x7f    ; Initialize the stack
+    mov SP, #0x7f    		; Initialize the stack
 	clr a
 	mov LEDRA, a
 	mov LEDRB, a
@@ -39,8 +39,9 @@ init:
 
 	lcall Display
 
-	mov b, #0           ; b=0:addition, b=1:subtraction, etc.
-	setb LEDRA.0        ; Turn LEDR0 on to indicate addition
+	mov b, #0           	; 0:addition, 1:subtraction, 2:multiplication,
+							; 3:division, 4:remainder, 5: sqrt
+	setb LEDRA.0        	; Turn LEDR0 on to indicate addition
 
 main_loop:
 	jb KEY.3, no_funct  	; If 'Function' key not pressed, skip
@@ -62,52 +63,52 @@ no_load:
 	lcall bcd2hex           ; Convert the BCD number to hex in x
 	mov a, function         ; Check what function to be called
 	cjne a, #0, no_add
-	; addition
+	; ------addition------
 	lcall add32             ; Perform x+y
 	lcall hex2bcd           ; Convert result in x to BCD
 	lcall Display           ; Display the new BCD number
 	ljmp main_loop          ; Go check for more input
 no_add:
 	cjne a, #1, no_subbtraction
-	; subtraction
+	; ------subtraction------
 	lcall sub32
 	lcall hex2bcd           ; Convert result in x to BCD
 	lcall Display           ; Display the new BCD number
 	ljmp main_loop          ; Go check for more input
 no_subbtraction:
 	cjne a, #2, no_multiplication
-	; multiplication
+	; ------multiplication------
 	lcall mul32
 	lcall hex2bcd           ; Convert result in x to BCD
 	lcall Display           ; Display the new BCD number
 	ljmp main_loop          ; Go check for more input
 no_multiplication:
 	cjne a, #3, no_division
-	; division
+	; ------division------
 	lcall div32
 	lcall hex2bcd           ; Convert result in x to BCD
 	lcall Display           ; Display the new BCD number
 	ljmp main_loop          ; Go check for more input
 no_division:
 	cjne a, #4, no_remainder
-	; remainder
+	; ------remainder------
 	lcall remainder32
 	lcall hex2bcd           ; Convert result in x to BCD
 	lcall Display           ; Display the new BCD number
 	ljmp main_loop          ; Go check for more input
 no_remainder:
 	cjne a, #5, no_sqrt
-	; sqrt
+	; ------sqrt------
 	lcall sqrt32
 	lcall hex2bcd           ; Convert result in x to BCD
 	lcall Display           ; Display the new BCD number
 	ljmp main_loop          ; Go check for more input
 no_sqrt:
-		; Other operations maybe coded here
+							; Other operations maybe coded here
 no_equal:
-	; get more numbers
+							; get more numbers
 	lcall ReadNumber
-	jnc no_new_digit    ; Indirect jump to 'main_loop'
+	jnc no_new_digit    	; Indirect jump to 'main_loop'
 	lcall Shift_Digits
 	lcall Display
 no_new_digit:
@@ -134,6 +135,7 @@ next_function_end:
 	mov LEDRA, R1
 	ret
 
+; x = x - (x / y * y)
 remainder32:
 	push acc
 	push psw
@@ -160,7 +162,6 @@ remainder32:
 	mov a, R7
 	subb a, x+3
 	mov x+3, a
-
 
 	pop psw
 	pop acc
